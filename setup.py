@@ -58,7 +58,7 @@ setup(
     url="https://github.com/AnthonyBloomer/rcp",
     install_requires=[
         'beautifulsoup4',
-        'urllib3',
+        'requests',
         'PTable'
     ],
     classifiers=[

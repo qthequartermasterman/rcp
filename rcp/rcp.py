@@ -3,14 +3,10 @@
 import csv
 from typing import List, Dict, Union, Any
 
-import urllib3
+import requests
 from bs4 import BeautifulSoup
 
-from fake_useragent import UserAgent
-
 base = "https://www.realclearpolitics.com"
-
-ua = UserAgent()
 
 
 def _html(url: str) -> BeautifulSoup:
@@ -19,11 +15,12 @@ def _html(url: str) -> BeautifulSoup:
     :param url: The url of the poll.
     :return: BeautifulSoup
     """
-    with urllib3.PoolManager() as manager:
-        res = manager.request("GET", url, headers={"User-Agent": ua.chrome})
-        if res.status != 200:
-            raise Exception(res.status)
-        soup = BeautifulSoup(res.data, "html.parser")
+    with requests.Session() as manager:
+        user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
+        res = manager.request("GET", url, headers={"User-Agent": user_agent})
+        if res.status_code != 200:
+            raise Exception(res.status_code)
+        soup = BeautifulSoup(res.text, "html.parser")
         return soup
 
 
@@ -45,10 +42,10 @@ def create_table(p: list, html_format: bool = False) -> str:
 
 
 def get_polls(
-    url: str = "%s/epolls/latest_polls/" % base,
-    candidate: str = None,
-    pollster: str = None,
-    state: str = None,
+        url: str = "%s/epolls/latest_polls/" % base,
+        candidate: str = None,
+        pollster: str = None,
+        state: str = None,
 ) -> List[Dict[str, Union[str, Any]]]:
     """
     :param state: The state to get polling data for.
@@ -77,9 +74,9 @@ def get_polls(
             n = col.find("td", {"class": "lp-poll"}).find("a").text
 
             if (
-                (candidate and candidate.lower() not in t.lower())
-                or (pollster and pollster.lower() not in n.lower())
-                or (state and state.lower() not in t.lower())
+                    (candidate and candidate.lower() not in t.lower())
+                    or (pollster and pollster.lower() not in n.lower())
+                    or (state and state.lower() not in t.lower())
             ):
                 continue
 
